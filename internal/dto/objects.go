@@ -26,6 +26,12 @@ type Item struct {
 	CreatedAt   time.Time `json:"createdAt" db:"createdAt"`
 }
 
+type ItemShort struct {
+	Id        int  `json:"id" db:"id"`
+	ProjectID int  `json:"projectId" db:"projectId"`
+	Removed   bool `json:"removed" db:"removed"`
+}
+
 type GetResponse struct {
 	Meta  Meta
 	Goods []Item
