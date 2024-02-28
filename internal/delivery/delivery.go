@@ -19,6 +19,26 @@ func NewHezzlServer(logic logic.HezzlLogicI) *HezzlServer {
 	return &HezzlServer{logic: logic}
 }
 
+func (h HezzlServer) GoodCreate(w http.ResponseWriter, r *http.Request) {
+	item, err := getGoodCreate(r)
+	if err != nil {
+		log.Warn().Err(err).Msg("error reading parameters")
+		fmt.Fprintln(w, "error reading parameters")
+		return
+	}
+
+	info, err := h.logic.GoodCreate(context.TODO(), item)
+	if err != nil {
+		log.Warn().Err(err).Msg("error executing h.logic.GoodCreate")
+		fmt.Fprintln(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(info)
+}
+
+
 func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 	meta, err := getMeta(r)
 	if err != nil {
@@ -66,4 +86,29 @@ func getMeta(r *http.Request) (*dto.Meta, error) {
 		log.Info().Err(err).Msg("couldn't get limit, setting limit = 10")
 	}
 	return &meta, nil
+}
+
+func getGoodCreate(r *http.Request) (*dto.Item, error) {
+	var err error
+	if err = r.ParseForm(); err != nil {
+		return nil, fmt.Errorf("ParseForm() err: %v", err)
+	}
+
+	queryParams := r.URL.Query()
+	projectId := queryParams.Get("projectId")
+
+	var projectIdNum int
+	if projectId != "" {
+		projectIdNum, err = strconv.Atoi(projectId)
+		if err != nil {
+			log.Info().Err(err).Msg("couldn't get projectId")
+			return nil, fmt.Errorf("couldn't parse URL parameters")
+		}
+	}
+	item := dto.Item{
+		ProjectID:   projectIdNum,
+		Name:        r.FormValue("name"),
+	}
+
+	return &item, nil
 }
