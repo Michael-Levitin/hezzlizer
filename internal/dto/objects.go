@@ -2,7 +2,6 @@ package dto
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -17,7 +16,7 @@ type Meta struct {
 	Offset int `json:"offset,omitempty" db:"offset"`
 }
 
-type Goods struct {
+type Item struct {
 	Id          int       `json:"id" db:"id"`
 	ProjectID   int       `json:"projectId" db:"projectId"`
 	Name        string    `json:"name" db:"name"`
@@ -29,5 +28,5 @@ type Goods struct {
 
 type GetResponse struct {
 	Meta  Meta
-	Goods []Goods
+	Goods []Item
 }
