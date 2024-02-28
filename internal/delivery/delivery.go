@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type HezzlServer struct {
@@ -28,7 +27,7 @@ func (h HezzlServer) GoodCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err = h.logic.GoodCreate(context.TODO(), item)
+	item, err = h.logic.GoodCreate(context.Background(), item)
 	if err != nil {
 		log.Warn().Err(err).Msg("error executing h.logic.GoodUpdate")
 		fmt.Fprintln(w, err)
@@ -46,7 +45,7 @@ func (h HezzlServer) GoodUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err = h.logic.GoodUpdate(context.TODO(), item)
+	item, err = h.logic.GoodUpdate(context.Background(), item)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -63,7 +62,7 @@ func (h HezzlServer) GoodRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err = h.logic.GoodRemove(context.TODO(), item)
+	item, err = h.logic.GoodRemove(context.Background(), item)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -87,7 +86,7 @@ func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := h.logic.GoodsList(context.TODO(), meta)
+	info, err := h.logic.GoodsList(context.Background(), meta)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -96,6 +95,26 @@ func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, "Goods List:\n")
 	json.NewEncoder(w).Encode(info)
+
+}
+
+func (h HezzlServer) GoodReprioritize(w http.ResponseWriter, r *http.Request) {
+	item, err := getParam(r)
+	if err != nil {
+		log.Warn().Err(err).Msg("error reading parameters")
+		fmt.Fprintln(w, "error reading parameters", err)
+		return
+	}
+
+	priorities, err := h.logic.GoodReprioritize(context.Background(), item)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "update item:\n")
+	json.NewEncoder(w).Encode(priorities)
 
 }
 
@@ -137,7 +156,7 @@ func getParam(r *http.Request) (*dto.Item, error) {
 	queryParams := r.URL.Query()
 	projectId := queryParams.Get("projectId")
 
-	var projectIdNum, idNum int
+	var projectIdNum, idNum, priorityNum int
 	if projectId != "" {
 		projectIdNum, err = strconv.Atoi(projectId)
 		if err != nil {
@@ -154,14 +173,21 @@ func getParam(r *http.Request) (*dto.Item, error) {
 		}
 	}
 
+	priority := r.FormValue("newPriority")
+	if priority != "" {
+		priorityNum, err = strconv.Atoi(priority)
+		if err != nil {
+			log.Info().Err(err).Msg("couldn't get priority")
+			return nil, fmt.Errorf("couldn't parse URL parameters")
+		}
+	}
+
 	item := dto.Item{
 		Id:          idNum,
 		ProjectID:   projectIdNum,
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
-		Priority:    0,
-		Removed:     false,
-		CreatedAt:   time.Time{},
+		Priority:    priorityNum,
 	}
 
 	return &item, nil
