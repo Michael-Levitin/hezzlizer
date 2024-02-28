@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type HezzlServer struct {
@@ -20,24 +21,40 @@ func NewHezzlServer(logic logic.HezzlLogicI) *HezzlServer {
 }
 
 func (h HezzlServer) GoodCreate(w http.ResponseWriter, r *http.Request) {
-	item, err := getGoodCreate(r)
+	item, err := getParam(r)
 	if err != nil {
 		log.Warn().Err(err).Msg("error reading parameters")
-		fmt.Fprintln(w, "error reading parameters")
+		fmt.Fprintln(w, err)
 		return
 	}
 
-	info, err := h.logic.GoodCreate(context.TODO(), item)
+	item, err = h.logic.GoodCreate(context.TODO(), item)
 	if err != nil {
-		log.Warn().Err(err).Msg("error executing h.logic.GoodCreate")
+		log.Warn().Err(err).Msg("error executing h.logic.GoodUpdate")
 		fmt.Fprintln(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(info)
+	json.NewEncoder(w).Encode(item)
 }
 
+func (h HezzlServer) GoodUpdate(w http.ResponseWriter, r *http.Request) {
+	item, err := getParam(r)
+	if err != nil {
+		fmt.Fprintln(w, "error reading parameters: ", err)
+		return
+	}
+
+	item, err = h.logic.GoodUpdate(context.TODO(), item)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(item)
+}
 
 func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 	meta, err := getMeta(r)
@@ -88,7 +105,7 @@ func getMeta(r *http.Request) (*dto.Meta, error) {
 	return &meta, nil
 }
 
-func getGoodCreate(r *http.Request) (*dto.Item, error) {
+func getParam(r *http.Request) (*dto.Item, error) {
 	var err error
 	if err = r.ParseForm(); err != nil {
 		return nil, fmt.Errorf("ParseForm() err: %v", err)
@@ -97,7 +114,7 @@ func getGoodCreate(r *http.Request) (*dto.Item, error) {
 	queryParams := r.URL.Query()
 	projectId := queryParams.Get("projectId")
 
-	var projectIdNum int
+	var projectIdNum, idNum int
 	if projectId != "" {
 		projectIdNum, err = strconv.Atoi(projectId)
 		if err != nil {
@@ -105,9 +122,23 @@ func getGoodCreate(r *http.Request) (*dto.Item, error) {
 			return nil, fmt.Errorf("couldn't parse URL parameters")
 		}
 	}
+	id := queryParams.Get("id")
+	if id != "" {
+		idNum, err = strconv.Atoi(id)
+		if err != nil {
+			log.Info().Err(err).Msg("couldn't get projectId")
+			return nil, fmt.Errorf("couldn't parse URL parameters")
+		}
+	}
+
 	item := dto.Item{
+		Id:          idNum,
 		ProjectID:   projectIdNum,
 		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Priority:    0,
+		Removed:     false,
+		CreatedAt:   time.Time{},
 	}
 
 	return &item, nil
