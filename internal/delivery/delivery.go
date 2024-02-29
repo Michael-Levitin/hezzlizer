@@ -29,7 +29,7 @@ func (h HezzlServer) GoodCreate(w http.ResponseWriter, r *http.Request) {
 
 	item, err = h.logic.GoodCreate(context.Background(), item)
 	if err != nil {
-		log.Warn().Err(err).Msg("error executing h.logic.GoodUpdate")
+		log.Warn().Err(err).Msg("error executing h.logic.GoodCreate")
 		fmt.Fprintln(w, err)
 		return
 	}
@@ -155,7 +155,6 @@ func getParam(r *http.Request) (*dto.Item, error) {
 
 	queryParams := r.URL.Query()
 	projectId := queryParams.Get("projectId")
-
 	var projectIdNum, idNum, priorityNum int
 	if projectId != "" {
 		projectIdNum, err = strconv.Atoi(projectId)
@@ -173,22 +172,15 @@ func getParam(r *http.Request) (*dto.Item, error) {
 		}
 	}
 
-	priority := r.FormValue("newPriority")
-	if priority != "" {
-		priorityNum, err = strconv.Atoi(priority)
-		if err != nil {
-			log.Info().Err(err).Msg("couldn't get priority")
-			return nil, fmt.Errorf("couldn't parse URL parameters")
-		}
+	var item dto.Item
+	err = json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't parse request Body parameters, %s", err)
 	}
 
-	item := dto.Item{
-		Id:          idNum,
-		ProjectID:   projectIdNum,
-		Name:        r.FormValue("name"),
-		Description: r.FormValue("description"),
-		Priority:    priorityNum,
-	}
+	item.Id = idNum
+	item.ProjectID = projectIdNum
+	item.Priority = priorityNum
 
 	return &item, nil
 }

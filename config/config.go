@@ -20,7 +20,7 @@ type Config struct {
 func Init() {
 	// загружаем данные из .env файла в систему
 	if err := godotenv.Load(); err != nil {
-		log.Fatal().Err(err).Msg("No .env file found")
+		log.Error().Err(err).Msg("No .env file found")
 	}
 	log.Info().Msg("loaded env values")
 }
@@ -28,12 +28,12 @@ func Init() {
 // New returns a new Config struct
 func New() *Config {
 	return &Config{
-		DbHost:     getEnv("DB_HOST", ""),
-		DbPort:     getEnv("DB_PORT", ""),
-		DbName:     getEnv("DB_NAME", ""),
-		DbUsername: getEnv("DB_USERNAME", ""),
-		DbPassword: getEnv("DB_PASSWORD", ""),
-		LogLevel:   getLevel("LOG_LEVEL", "info"),
+		DbHost:     getEnv("DB_HOST", "localhost"),
+		DbPort:     getEnv("DB_PORT", "5432"),
+		DbName:     getEnv("DB_NAME", "postgres"),
+		DbUsername: getEnv("DB_USERNAME", "postgres"),
+		DbPassword: getEnv("DB_PASSWORD", "postgres"),
+		LogLevel:   getLevel("LOG_LEVEL", "debug"),
 	}
 }
 

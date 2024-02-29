@@ -20,13 +20,13 @@ type Item struct {
 	Id          int       `json:"id" db:"id"`
 	ProjectID   int       `json:"projectId" db:"projectId"`
 	Name        string    `json:"name" db:"name"`
-	Description string    `json:"description" db:"Description"`
+	Description string    `json:"description" db:"description"`
 	Priority    int       `json:"priority" db:"priority"`
 	Removed     bool      `json:"removed" db:"removed"`
 	CreatedAt   time.Time `json:"createdAt" db:"createdAt"`
 }
 
-type ItemShort struct {
+type ItemShort struct { // TODO short, omitempty
 	Id        int  `json:"id" db:"id"`
 	ProjectID int  `json:"projectId" db:"projectId"`
 	Removed   bool `json:"removed" db:"removed"`
@@ -40,6 +40,10 @@ type GetResponse struct {
 type Priority struct {
 	Id       int `json:"id" db:"id"`
 	Priority int `json:"priority" db:"priority"`
+}
+
+type ReprRequest struct {
+	NewPriority int `json:"newPriority" db:"newPriority"`
 }
 
 type ReprResponse struct {
