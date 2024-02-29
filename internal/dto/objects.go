@@ -36,3 +36,12 @@ type GetResponse struct {
 	Meta  Meta
 	Goods []Item
 }
+
+type Priority struct {
+	Id       int `json:"id" db:"id"`
+	Priority int `json:"priority" db:"priority"`
+}
+
+type ReprResponse struct {
+	Priorities []Priority `json:"priorities" db:"priorities"`
+}
