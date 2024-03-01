@@ -33,7 +33,7 @@ func New() *Config {
 		DbName:     getEnv("DB_NAME", "postgres"),
 		DbUsername: getEnv("DB_USERNAME", "postgres"),
 		DbPassword: getEnv("DB_PASSWORD", "postgres"),
-		LogLevel:   getLevel("LOG_LEVEL", "debug"),
+		LogLevel:   getLevel("LOG_LEVEL", "trace"),
 	}
 }
 

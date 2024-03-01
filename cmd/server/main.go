@@ -31,7 +31,7 @@ func main() {
 
 	hezzlDB := database.NewHezzlDB(db)                 // подключаем бд
 	hezzlLogic := logic.NewHezzlLogic(hezzlDB)         // подключаем бд к логике...
-	hezzlServer := delivery.NewHezzlServer(hezzlLogic) // ... а логику в библиотеку
+	hezzlServer := delivery.NewHezzlServer(hezzlLogic) // ... а логику в delivery
 
 	http.HandleFunc("/good/create", hezzlServer.GoodCreate)
 	http.HandleFunc("/good/update", hezzlServer.GoodUpdate)

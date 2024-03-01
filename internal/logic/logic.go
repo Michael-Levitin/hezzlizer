@@ -19,11 +19,17 @@ func NewHezzlLogic(HezzlDB database.HezzlDbI) *HezzlLogic {
 
 func (h HezzlLogic) GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", item))
+	if item.ProjectID == 0 || item.Name == "" {
+		return &dto.Item{}, fmt.Errorf("projectId and name cannot be empty")
+	}
 	return h.HezzlDB.GoodCreate(ctx, item)
 }
 
 func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", item))
+	if item.ProjectID == 0 || item.Name == "" || item.Id == 0 {
+		return &dto.Item{}, fmt.Errorf("id, projectId & name cannot be empty")
+	}
 	return h.HezzlDB.GoodUpdate(ctx, item)
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	QueryExecuteErorr = fmt.Errorf("could not execute query")
+	ErrQueryExecute = fmt.Errorf("could not execute query")
 )
 
 type Meta struct {
