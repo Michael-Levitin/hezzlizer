@@ -41,9 +41,9 @@ func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemSh
 	return h.HezzlDB.GoodRemove(ctx, item)
 }
 
-func (h HezzlLogic) GoodsList(ctx context.Context, info *dto.Meta) (*dto.GetResponse, error) {
-	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", info))
-	return h.HezzlDB.GoodsList(ctx, info)
+func (h HezzlLogic) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
+	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", meta))
+	return h.HezzlDB.GoodsList(ctx, meta)
 }
 
 func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {

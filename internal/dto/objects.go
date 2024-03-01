@@ -10,10 +10,10 @@ var (
 )
 
 type Meta struct {
-	Total  int `json:"total,omitempty" db:"total"`
-	Remove int `json:"remove,omitempty" db:"remove"`
-	Limit  int `json:"limit,omitempty" db:"limit"`
-	Offset int `json:"offset,omitempty" db:"offset"`
+	Total   int `json:"total" db:"total"`
+	Removed int `json:"removed" db:"removed"`
+	Limit   int `json:"limit" db:"limit"`
+	Offset  int `json:"offset" db:"offset"`
 }
 
 type Item struct {
@@ -26,7 +26,7 @@ type Item struct {
 	CreatedAt   time.Time `json:"createdAt" db:"createdAt"`
 }
 
-type ItemShort struct { // TODO short, omitempty
+type ItemShort struct {
 	Id        int  `json:"id" db:"id"`
 	ProjectID int  `json:"projectId" db:"projectId"`
 	Removed   bool `json:"removed" db:"removed"`

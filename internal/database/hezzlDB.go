@@ -28,6 +28,17 @@ UPDATE goods SET
        removed = true
 WHERE id = @id AND project_id = @projectId
 RETURNING id, project_id, removed;`
+
+	_goodMetaQuery = `
+SELECT
+    (SELECT count(*) FROM goods) as total,
+    (SELECT count(*) FROM goods WHERE removed = true) as removed;`
+
+	_goodListQuery = `
+SELECT id, project_id, name, COALESCE(description, '') as description, priority, removed, created_at
+FROM goods
+ORDER BY id
+OFFSET @offset LIMIT @limit`
 )
 
 type HezzlDB struct {
@@ -134,9 +145,33 @@ func (h HezzlDB) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort
 	return &itemS, nil
 }
 
-func (h HezzlDB) GoodsList(ctx context.Context, item *dto.Meta) (*dto.GetResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
+	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", meta))
+
+	err := h.db.QueryRow(ctx, _goodMetaQuery).Scan(&meta.Total, &meta.Removed)
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodsList could not set meta %+v", meta))
+		return &dto.GetResponse{}, dto.ErrQueryExecute
+	}
+	fmt.Printf("%+v\n", meta)
+
+	rows, err := h.db.Query(ctx, _goodListQuery,
+		pgx.NamedArgs{"limit": meta.Limit, "offset": meta.Offset})
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodsList could not get list %+v", meta))
+		return &dto.GetResponse{}, dto.ErrQueryExecute
+	}
+
+	goods, err := pgx.CollectRows(rows, pgx.RowToStructByName[dto.Item])
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("CollectRows error"))
+		return &dto.GetResponse{}, dto.ErrQueryExecute
+	}
+	fmt.Printf("%+v\n", goods)
+	return &dto.GetResponse{
+		Meta:  *meta,
+		Goods: goods,
+	}, nil
 }
 
 func (h HezzlDB) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {

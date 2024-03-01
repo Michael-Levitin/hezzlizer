@@ -123,10 +123,10 @@ func getMeta(r *http.Request) (*dto.Meta, error) {
 			log.Info().Err(err).Msg("couldn't get offset")
 		}
 	}
-	if meta.Offset == 0 {
-		meta.Offset = 1
-		log.Info().Err(err).Msg("couldn't get offset, setting offset = 1")
-	}
+	//if meta.Offset == 0 {
+	//	meta.Offset = 0
+	//	log.Info().Err(err).Msg("couldn't get offset, setting offset = 1")
+	//}
 	limit := queryParams.Get("limit")
 	if limit != "" {
 		meta.Offset, err = strconv.Atoi(limit)
