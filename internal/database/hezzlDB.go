@@ -22,6 +22,12 @@ UPDATE goods SET
        description = COALESCE(@description, description)
 WHERE id = @id AND project_id = @projectId
 RETURNING id, project_id, name, COALESCE(description,''), priority, removed, created_at;`
+
+	_goodRemoveQuery = `
+UPDATE goods SET
+       removed = true
+WHERE id = @id AND project_id = @projectId
+RETURNING id, project_id, removed;`
 )
 
 type HezzlDB struct {
@@ -93,9 +99,39 @@ func (h HezzlDB) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, err
 	return item, nil
 }
 
-func (h HezzlDB) GoodRemove(ctx context.Context, info *dto.Item) (*dto.Item, error) {
-	//TODO implement me
-	panic("implement me")
+func (h HezzlDB) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort, error) {
+	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
+	tx, err := h.db.Begin(ctx)
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("failed beginning transaction"))
+		return &dto.ItemShort{}, dto.ErrQueryExecute
+	}
+	itemS := dto.ItemShort{}
+	err = h.db.QueryRow(ctx, _goodRemoveQuery,
+		pgx.NamedArgs{"id": item.Id, "projectId": item.ProjectID}).
+		Scan(&itemS.Id,
+			&itemS.ProjectID,
+			&itemS.Removed,
+		)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		tx.Commit(ctx)
+		return &dto.ItemShort{}, fmt.Errorf("query found nothing to update")
+	} else if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove could not update %+v", item))
+		err = tx.Rollback(ctx)
+		if err != nil {
+			log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove failed rolling back transaction"))
+		}
+		return &dto.ItemShort{}, dto.ErrQueryExecute
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove failed commiting transaction"))
+		return &dto.ItemShort{}, dto.ErrQueryExecute
+	}
+
+	return &itemS, nil
 }
 
 func (h HezzlDB) GoodsList(ctx context.Context, item *dto.Meta) (*dto.GetResponse, error) {
@@ -107,4 +143,3 @@ func (h HezzlDB) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.Rep
 	//TODO implement me
 	panic("implement me")
 }
-

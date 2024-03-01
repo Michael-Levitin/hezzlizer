@@ -33,8 +33,11 @@ func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, 
 	return h.HezzlDB.GoodUpdate(ctx, item)
 }
 
-func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.Item, error) {
+func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", item))
+	if item.ProjectID == 0 || item.Id == 0 {
+		return &dto.ItemShort{}, fmt.Errorf("id, projectId cannot be empty")
+	}
 	return h.HezzlDB.GoodRemove(ctx, item)
 }
 

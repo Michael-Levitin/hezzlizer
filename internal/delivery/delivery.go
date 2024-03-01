@@ -62,20 +62,14 @@ func (h HezzlServer) GoodRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err = h.logic.GoodRemove(context.Background(), item)
+	itemS, err := h.logic.GoodRemove(context.Background(), item)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-	itemShort := dto.ItemShort{
-		Id:        item.Id,
-		ProjectID: item.ProjectID,
-		Removed:   item.Removed,
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(itemShort)
+	json.NewEncoder(w).Encode(itemS)
 }
 
 func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
