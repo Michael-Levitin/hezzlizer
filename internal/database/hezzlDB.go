@@ -39,6 +39,25 @@ SELECT id, project_id, name, COALESCE(description, '') as description, priority,
 FROM goods
 ORDER BY id
 OFFSET @offset LIMIT @limit`
+
+	_goodReprQuery = `
+with updated as (
+    UPDATE goods
+        SET priority = priority + @priority - (
+            SELECT priority
+            FROM goods
+            WHERE id = @id AND project_id = @projectId
+        )
+
+        WHERE priority >= (
+            SELECT priority
+            FROM goods
+            WHERE id = @id AND project_id = @projectId
+        )
+        RETURNING id, priority)
+select *
+from updated
+ORDER BY id;`
 )
 
 type HezzlDB struct {
@@ -153,7 +172,6 @@ func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetRespons
 		log.Debug().Err(err).Msg(fmt.Sprintf("GoodsList could not set meta %+v", meta))
 		return &dto.GetResponse{}, dto.ErrQueryExecute
 	}
-	fmt.Printf("%+v\n", meta)
 
 	rows, err := h.db.Query(ctx, _goodListQuery,
 		pgx.NamedArgs{"limit": meta.Limit, "offset": meta.Offset})
@@ -167,7 +185,7 @@ func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetRespons
 		log.Debug().Err(err).Msg(fmt.Sprintf("CollectRows error"))
 		return &dto.GetResponse{}, dto.ErrQueryExecute
 	}
-	fmt.Printf("%+v\n", goods)
+
 	return &dto.GetResponse{
 		Meta:  *meta,
 		Goods: goods,
@@ -175,6 +193,35 @@ func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetRespons
 }
 
 func (h HezzlDB) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
+
+	tx, err := h.db.Begin(ctx)
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("failed beginning transaction"))
+		return &dto.ReprResponse{}, dto.ErrQueryExecute
+	}
+
+	rows, err := h.db.Query(ctx, _goodReprQuery,
+		pgx.NamedArgs{"id": item.Id, "projectId": item.ProjectID, "priority": item.Priority})
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize could not set priorities %+v", item))
+		err = tx.Rollback(ctx)
+		if err != nil {
+			log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize failed rolling back transaction"))
+		}
+		return &dto.ReprResponse{}, dto.ErrQueryExecute
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize failed commiting transaction"))
+		return &dto.ReprResponse{}, dto.ErrQueryExecute
+	}
+
+	priorities, err := pgx.CollectRows(rows, pgx.RowToStructByName[dto.Priority])
+	if err != nil {
+		log.Debug().Err(err).Msg(fmt.Sprintf("CollectRows error"))
+		return &dto.ReprResponse{}, dto.ErrQueryExecute
+	}
+
+	return &dto.ReprResponse{Priorities: priorities}, nil
 }

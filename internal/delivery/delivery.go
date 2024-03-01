@@ -100,15 +100,14 @@ func (h HezzlServer) GoodReprioritize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	priorities, err := h.logic.GoodReprioritize(context.Background(), item)
+	resp, err := h.logic.GoodReprioritize(context.Background(), item)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "update item:\n")
-	json.NewEncoder(w).Encode(priorities)
+	json.NewEncoder(w).Encode(resp)
 
 }
 
@@ -123,10 +122,7 @@ func getMeta(r *http.Request) (*dto.Meta, error) {
 			log.Info().Err(err).Msg("couldn't get offset")
 		}
 	}
-	//if meta.Offset == 0 {
-	//	meta.Offset = 0
-	//	log.Info().Err(err).Msg("couldn't get offset, setting offset = 1")
-	//}
+
 	limit := queryParams.Get("limit")
 	if limit != "" {
 		meta.Offset, err = strconv.Atoi(limit)
@@ -149,7 +145,7 @@ func getParam(r *http.Request) (*dto.Item, error) {
 
 	queryParams := r.URL.Query()
 	projectId := queryParams.Get("projectId")
-	var projectIdNum, idNum, priorityNum int
+	var projectIdNum, idNum int
 	if projectId != "" {
 		projectIdNum, err = strconv.Atoi(projectId)
 		if err != nil {
@@ -174,7 +170,6 @@ func getParam(r *http.Request) (*dto.Item, error) {
 
 	item.Id = idNum
 	item.ProjectID = projectIdNum
-	item.Priority = priorityNum
 
 	return &item, nil
 }

@@ -48,5 +48,8 @@ func (h HezzlLogic) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResp
 
 func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", item))
+	if item.ProjectID == 0 || item.Id == 0 || item.Priority == 0 {
+		return &dto.ReprResponse{}, fmt.Errorf("id, projectId & prioirity cannot be empty")
+	}
 	return h.HezzlDB.GoodReprioritize(ctx, item)
 }

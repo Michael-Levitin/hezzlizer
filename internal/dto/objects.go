@@ -42,10 +42,6 @@ type Priority struct {
 	Priority int `json:"priority" db:"priority"`
 }
 
-type ReprRequest struct {
-	NewPriority int `json:"newPriority" db:"newPriority"`
-}
-
 type ReprResponse struct {
 	Priorities []Priority `json:"priorities" db:"priorities"`
 }
