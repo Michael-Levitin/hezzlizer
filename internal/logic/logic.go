@@ -22,7 +22,7 @@ func (h HezzlLogic) GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, 
 	if item.ProjectID == 0 || item.Name == "" {
 		return &dto.Item{}, fmt.Errorf("projectId and name cannot be empty")
 	}
-	return h.HezzlDB.GoodCreate(ctx, item)
+	return h.HezzlDB.GoodCreateDB(ctx, item)
 }
 
 func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
@@ -30,7 +30,7 @@ func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, 
 	if item.ProjectID == 0 || item.Name == "" || item.Id == 0 {
 		return &dto.Item{}, fmt.Errorf("id, projectId & name cannot be empty")
 	}
-	return h.HezzlDB.GoodUpdate(ctx, item)
+	return h.HezzlDB.GoodUpdateDB(ctx, item)
 }
 
 func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort, error) {
@@ -38,12 +38,12 @@ func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemSh
 	if item.ProjectID == 0 || item.Id == 0 {
 		return &dto.ItemShort{}, fmt.Errorf("id, projectId cannot be empty")
 	}
-	return h.HezzlDB.GoodRemove(ctx, item)
+	return h.HezzlDB.GoodRemoveDB(ctx, item)
 }
 
 func (h HezzlLogic) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", meta))
-	return h.HezzlDB.GoodsList(ctx, meta)
+	return h.HezzlDB.GoodsListDB(ctx, meta)
 }
 
 func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
@@ -51,5 +51,5 @@ func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.
 	if item.ProjectID == 0 || item.Id == 0 || item.Priority == 0 {
 		return &dto.ReprResponse{}, fmt.Errorf("id, projectId & prioirity cannot be empty")
 	}
-	return h.HezzlDB.GoodReprioritize(ctx, item)
+	return h.HezzlDB.GoodReprioritizeDB(ctx, item)
 }

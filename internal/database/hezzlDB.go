@@ -68,7 +68,7 @@ func NewHezzlDB(db *pgxpool.Pool) *HezzlDB {
 	return &HezzlDB{db: db}
 }
 
-func (h HezzlDB) GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
+func (h HezzlDB) GoodCreateDB(ctx context.Context, item *dto.Item) (*dto.Item, error) {
 	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
 
 	err := h.db.QueryRow(ctx, _goodCreateQuery,
@@ -83,14 +83,14 @@ func (h HezzlDB) GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, err
 		)
 	if err != nil {
 		fmt.Println(err)
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodCreate could not create %+v", item))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodCreateDB could not create %+v", item))
 		return &dto.Item{}, dto.ErrQueryExecute
 	}
 
 	return item, nil
 }
 
-func (h HezzlDB) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
+func (h HezzlDB) GoodUpdateDB(ctx context.Context, item *dto.Item) (*dto.Item, error) {
 	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
 	tx, err := h.db.Begin(ctx)
 	if err != nil {
@@ -113,23 +113,23 @@ func (h HezzlDB) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, err
 		tx.Commit(ctx)
 		return &dto.Item{}, fmt.Errorf("query found nothing to update")
 	} else if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdate could not update %+v", item))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdateDB could not update %+v", item))
 		err = tx.Rollback(ctx)
 		if err != nil {
-			log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdate failed rolling back transaction"))
+			log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdateDB failed rolling back transaction"))
 		}
 		return &dto.Item{}, dto.ErrQueryExecute
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdate failed commiting transaction"))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdateDB failed commiting transaction"))
 		return &dto.Item{}, dto.ErrQueryExecute
 	}
 
 	return item, nil
 }
 
-func (h HezzlDB) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort, error) {
+func (h HezzlDB) GoodRemoveDB(ctx context.Context, item *dto.Item) (*dto.ItemShort, error) {
 	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
 	tx, err := h.db.Begin(ctx)
 	if err != nil {
@@ -148,23 +148,23 @@ func (h HezzlDB) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemShort
 		tx.Commit(ctx)
 		return &dto.ItemShort{}, fmt.Errorf("query found nothing to update")
 	} else if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove could not update %+v", item))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemoveDB could not update %+v", item))
 		err = tx.Rollback(ctx)
 		if err != nil {
-			log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove failed rolling back transaction"))
+			log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemoveDB failed rolling back transaction"))
 		}
 		return &dto.ItemShort{}, dto.ErrQueryExecute
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemove failed commiting transaction"))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemoveDB failed commiting transaction"))
 		return &dto.ItemShort{}, dto.ErrQueryExecute
 	}
 
 	return &itemS, nil
 }
 
-func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
+func (h HezzlDB) GoodsListDB(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
 	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", meta))
 
 	err := h.db.QueryRow(ctx, _goodMetaQuery).Scan(&meta.Total, &meta.Removed)
@@ -176,7 +176,7 @@ func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetRespons
 	rows, err := h.db.Query(ctx, _goodListQuery,
 		pgx.NamedArgs{"limit": meta.Limit, "offset": meta.Offset})
 	if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodsList could not get list %+v", meta))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodsListDB could not get list %+v", meta))
 		return &dto.GetResponse{}, dto.ErrQueryExecute
 	}
 
@@ -192,7 +192,7 @@ func (h HezzlDB) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetRespons
 	}, nil
 }
 
-func (h HezzlDB) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
+func (h HezzlDB) GoodReprioritizeDB(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
 	log.Trace().Msg(fmt.Sprintf("DB recieve %+v\n", item))
 
 	tx, err := h.db.Begin(ctx)
@@ -204,16 +204,16 @@ func (h HezzlDB) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.Rep
 	rows, err := h.db.Query(ctx, _goodReprQuery,
 		pgx.NamedArgs{"id": item.Id, "projectId": item.ProjectID, "priority": item.Priority})
 	if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize could not set priorities %+v", item))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritizeDB could not set priorities %+v", item))
 		err = tx.Rollback(ctx)
 		if err != nil {
-			log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize failed rolling back transaction"))
+			log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritizeDB failed rolling back transaction"))
 		}
 		return &dto.ReprResponse{}, dto.ErrQueryExecute
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritize failed commiting transaction"))
+		log.Debug().Err(err).Msg(fmt.Sprintf("GoodReprioritizeDB failed commiting transaction"))
 		return &dto.ReprResponse{}, dto.ErrQueryExecute
 	}
 

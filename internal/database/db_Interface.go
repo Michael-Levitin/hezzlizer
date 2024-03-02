@@ -6,9 +6,9 @@ import (
 )
 
 type HezzlDbI interface {
-	GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, error)
-	GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, error)
-	GoodRemove(ctx context.Context, info *dto.Item) (*dto.ItemShort, error)
-	GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error)
-	GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error)
+	GoodCreateDB(ctx context.Context, item *dto.Item) (*dto.Item, error)
+	GoodUpdateDB(ctx context.Context, item *dto.Item) (*dto.Item, error)
+	GoodRemoveDB(ctx context.Context, info *dto.Item) (*dto.ItemShort, error)
+	GoodsListDB(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error)
+	GoodReprioritizeDB(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error)
 }
