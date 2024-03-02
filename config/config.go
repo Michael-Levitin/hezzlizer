@@ -20,9 +20,10 @@ type Config struct {
 func Init() {
 	// загружаем данные из .env файла в систему
 	if err := godotenv.Load(); err != nil {
-		log.Error().Err(err).Msg("No .env file found")
+		log.Error().Err(err).Msg("no .env file found")
+	} else {
+		log.Info().Msg("loaded env values")
 	}
-	log.Info().Msg("loaded env values")
 }
 
 // New returns a new Config struct
