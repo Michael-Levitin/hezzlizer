@@ -10,11 +10,12 @@ import (
 
 type HezzlLogic struct {
 	HezzlDB database.HezzlDbI
+	RedisDB database.RedisDB
 }
 
 // NewHezzlLogic подключаем интерфейс БД в новую логику
-func NewHezzlLogic(HezzlDB database.HezzlDbI) *HezzlLogic {
-	return &HezzlLogic{HezzlDB: HezzlDB}
+func NewHezzlLogic(HezzlDB database.HezzlDbI, RedisDB *database.RedisDB) *HezzlLogic {
+	return &HezzlLogic{HezzlDB: HezzlDB, RedisDB: *RedisDB}
 }
 
 func (h HezzlLogic) GoodCreate(ctx context.Context, item *dto.Item) (*dto.Item, error) {
@@ -30,6 +31,7 @@ func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, 
 	if item.ProjectID == 0 || item.Name == "" || item.Id == 0 {
 		return &dto.Item{}, fmt.Errorf("id, projectId & name cannot be empty")
 	}
+	h.RedisDB.Invalidate(ctx, item)
 	return h.HezzlDB.GoodUpdateDB(ctx, item)
 }
 
