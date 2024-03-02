@@ -33,11 +33,34 @@ func (r RedisDB) PutOne(ctx context.Context, item *dto.Item) {
 	}
 }
 
+func (r RedisDB) GetOne(ctx context.Context, item *dto.Item) (*dto.Item, error) {
+	return &dto.Item{}, nil
+}
+
+func (r RedisDB) PutList(ctx context.Context, goods *dto.GetResponse) {
+	jsoned, err := json.Marshal(goods)
+	if err != nil {
+		log.Warn().Err(err).Msg(fmt.Sprintf("redis: marshal %+v\n failed", goods.Meta))
+	}
+	key := strconv.Itoa(goods.Meta.Offset) + "-" + strconv.Itoa(goods.Meta.Limit)
+	err = r.red.Set(ctx, key, jsoned, redisTTL*time.Second).Err()
+	if err != nil {
+		log.Warn().Err(err).Msg(fmt.Sprintf("redis: Put %+v\n failed", goods.Meta))
+	}
+}
+
+func (r RedisDB) GetList(ctx context.Context, meta *dto.Meta) (string, error) {
+	key := strconv.Itoa(meta.Offset) + "-" + strconv.Itoa(meta.Limit)
+
+	val, err := r.red.Get(ctx, key).Result()
+	if err != nil {
+		log.Trace().Err(err).Msg(fmt.Sprintf("redis could not get list %s", key))
+	}
+	log.Trace().Msg(fmt.Sprintf("redis retrieved list %s", key))
+	return val, err
+}
+
 func (r RedisDB) Invalidate(ctx context.Context, key string) {
 	// Удаляем по ключю
 	r.red.Del(ctx, key)
-}
-
-func (r RedisDB) Get(ctx context.Context, item *dto.Item) (*dto.Item, error) {
-	return &dto.Item{}, nil
 }
