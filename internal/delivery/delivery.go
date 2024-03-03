@@ -96,7 +96,6 @@ func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, "Goods List:\n")
 	json.NewEncoder(w).Encode(info)
 
 }
@@ -127,17 +126,15 @@ func getMeta(r *http.Request) (*dto.Meta, error) {
 	offset := queryParams.Get("offset")
 	if offset != "" {
 		meta.Offset, err = strconv.Atoi(offset)
-		if err != nil {
-			log.Info().Err(err).Msg("couldn't get offset")
-		}
+	}
+	if meta.Offset == 0 {
+		meta.Offset = 1
+		log.Info().Err(err).Msg("couldn't get offset, setting offset = 1")
 	}
 
 	limit := queryParams.Get("limit")
 	if limit != "" {
-		meta.Offset, err = strconv.Atoi(limit)
-		if err != nil {
-			log.Info().Err(err).Msg("couldn't get limit")
-		}
+		meta.Limit, err = strconv.Atoi(limit)
 	}
 	if meta.Limit == 0 {
 		meta.Limit = 10
