@@ -38,10 +38,10 @@ func main() {
 	log.Info().Msg("connected to Redis")
 	defer client.Close()
 
-	hezzlDB := database.NewHezzlDB(db)                  // подключаем бд
-	redisDB := database.NewRedisDB(client)              // подключаем Redis
-	hezzlLogic := logic.NewHezzlLogic(hezzlDB, redisDB) // подключаем бд и Redis к логике...
-	hezzlServer := delivery.NewHezzlServer(hezzlLogic)  // ... а логику в delivery
+	hezzlDB := database.NewHezzlDB(db)                          // подключаем бд
+	redisDB := database.NewRedisDB(client)                      // подключаем Redis
+	hezzlLogic := logic.NewHezzlLogic(hezzlDB, redisDB)         // подключаем бд и Redis к логике...
+	hezzlServer := delivery.NewHezzlServer(hezzlLogic, redisDB) // ... а логику в delivery
 
 	http.HandleFunc("/good/create", hezzlServer.GoodCreate)
 	http.HandleFunc("/good/update", hezzlServer.GoodUpdate)

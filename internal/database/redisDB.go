@@ -21,22 +21,6 @@ func NewRedisDB(r *redis.Client) *RedisDB {
 	return &RedisDB{red: r}
 }
 
-func (r RedisDB) PutOne(ctx context.Context, item *dto.Item) {
-	jsoned, err := json.Marshal(item)
-	if err != nil {
-		log.Warn().Err(err).Msg(fmt.Sprintf("redis: marshal %+v\n failed", item))
-	}
-
-	err = r.red.Set(ctx, strconv.Itoa(item.Id), jsoned, redisTTL*time.Second).Err()
-	if err != nil {
-		log.Warn().Err(err).Msg(fmt.Sprintf("redis: Put %+v\n failed", item))
-	}
-}
-
-func (r RedisDB) GetOne(ctx context.Context, item *dto.Item) (*dto.Item, error) {
-	return &dto.Item{}, nil
-}
-
 func (r RedisDB) PutList(ctx context.Context, goods *dto.GetResponse) {
 	jsoned, err := json.Marshal(goods)
 	if err != nil {
@@ -60,7 +44,8 @@ func (r RedisDB) GetList(ctx context.Context, meta *dto.Meta) (string, error) {
 	return val, err
 }
 
-func (r RedisDB) Invalidate(ctx context.Context, key string) {
-	// Удаляем по ключю
-	r.red.Del(ctx, key)
+func (r RedisDB) Invalidate(ctx context.Context) {
+	// Удаляем все
+	r.red.FlushAllAsync(ctx)
+	log.Trace().Msg(fmt.Sprintf("redis flushed"))
 }

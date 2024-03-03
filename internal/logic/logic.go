@@ -31,7 +31,7 @@ func (h HezzlLogic) GoodUpdate(ctx context.Context, item *dto.Item) (*dto.Item, 
 	if item.ProjectID == 0 || item.Name == "" || item.Id == 0 {
 		return &dto.Item{}, fmt.Errorf("id, projectId & name cannot be empty")
 	}
-	h.RedisDB.Invalidate(ctx, item)
+	h.RedisDB.Invalidate(ctx)
 	return h.HezzlDB.GoodUpdateDB(ctx, item)
 }
 
@@ -40,12 +40,18 @@ func (h HezzlLogic) GoodRemove(ctx context.Context, item *dto.Item) (*dto.ItemSh
 	if item.ProjectID == 0 || item.Id == 0 {
 		return &dto.ItemShort{}, fmt.Errorf("id, projectId cannot be empty")
 	}
+	h.RedisDB.Invalidate(ctx)
 	return h.HezzlDB.GoodRemoveDB(ctx, item)
 }
 
 func (h HezzlLogic) GoodsList(ctx context.Context, meta *dto.Meta) (*dto.GetResponse, error) {
 	log.Trace().Msg(fmt.Sprintf("Logic recieved %+v\n", meta))
-	return h.HezzlDB.GoodsListDB(ctx, meta)
+	resp, err := h.HezzlDB.GoodsListDB(ctx, meta)
+	if err != nil {
+		return &dto.GetResponse{}, err
+	}
+	h.RedisDB.PutList(ctx, resp)
+	return resp, err
 }
 
 func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.ReprResponse, error) {
@@ -53,5 +59,6 @@ func (h HezzlLogic) GoodReprioritize(ctx context.Context, item *dto.Item) (*dto.
 	if item.ProjectID == 0 || item.Id == 0 || item.Priority == 0 {
 		return &dto.ReprResponse{}, fmt.Errorf("id, projectId & prioirity cannot be empty")
 	}
+	h.RedisDB.Invalidate(ctx)
 	return h.HezzlDB.GoodReprioritizeDB(ctx, item)
 }

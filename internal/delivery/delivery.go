@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Michael-Levitin/hezzlizer/internal/database"
 	"github.com/Michael-Levitin/hezzlizer/internal/dto"
 	"github.com/Michael-Levitin/hezzlizer/internal/logic"
 	"github.com/rs/zerolog/log"
@@ -13,10 +14,11 @@ import (
 
 type HezzlServer struct {
 	logic logic.HezzlLogicI
+	redis *database.RedisDB
 }
 
-func NewHezzlServer(logic logic.HezzlLogicI) *HezzlServer {
-	return &HezzlServer{logic: logic}
+func NewHezzlServer(logic logic.HezzlLogicI, redis *database.RedisDB) *HezzlServer {
+	return &HezzlServer{logic: logic, redis: redis}
 }
 
 func (h HezzlServer) GoodCreate(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +79,13 @@ func (h HezzlServer) GoodsList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Warn().Err(err).Msg("error reading parameters")
 		fmt.Fprintln(w, "error reading parameters", err)
+		return
+	}
+
+	resp, err := h.redis.GetList(context.Background(), meta)
+	if err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, resp)
 		return
 	}
 
