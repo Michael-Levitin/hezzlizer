@@ -28,7 +28,7 @@ RETURNING id, project_id, name, COALESCE(description,''), priority, removed, cre
 UPDATE goods SET
        removed = true
 WHERE id = @id AND project_id = @projectId
-RETURNING id, project_id, removed;`
+RETURNING id, project_id, name, COALESCE(description,''), priority, removed, created_at;`
 
 	_goodMetaQuery = `
 SELECT
@@ -139,12 +139,16 @@ func (h HezzlDB) GoodRemoveDB(ctx context.Context, item *dto.Item) (*dto.ItemSho
 		log.Debug().Err(err).Msg(fmt.Sprintf("failed beginning transaction"))
 		return &dto.ItemShort{}, dto.ErrQueryExecute
 	}
-	itemS := dto.ItemShort{}
+
 	err = h.db.QueryRow(ctx, _goodRemoveQuery,
 		pgx.NamedArgs{"id": item.Id, "projectId": item.ProjectID}).
-		Scan(&itemS.Id,
-			&itemS.ProjectID,
-			&itemS.Removed,
+		Scan(&item.Id,
+			&item.ProjectID,
+			&item.Name,
+			&item.Description,
+			&item.Priority,
+			&item.Removed,
+			&item.CreatedAt,
 		)
 
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -162,6 +166,14 @@ func (h HezzlDB) GoodRemoveDB(ctx context.Context, item *dto.Item) (*dto.ItemSho
 	if err != nil {
 		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemoveDB failed commiting transaction"))
 		return &dto.ItemShort{}, dto.ErrQueryExecute
+	}
+
+	go addItemToBatch(item)
+
+	itemS := dto.ItemShort{
+		Id:        item.Id,
+		ProjectID: item.ProjectID,
+		Removed:   item.Removed,
 	}
 
 	return &itemS, nil
@@ -232,10 +244,4 @@ func (h HezzlDB) GoodReprioritizeDB(ctx context.Context, item *dto.Item) (*dto.R
 func addItemToBatch(item *dto.Item) {
 
 	batch = append(batch, item)
-}
-
-func addItemSToBatch(itemS []*dto.Item) {
-	for _, item := range itemS {
-		batch = append(batch, item)
-	}
 }
