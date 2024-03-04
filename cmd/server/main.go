@@ -55,8 +55,8 @@ func main() {
 	log.Info().Msg("server connected to Nats")
 	defer nc.Close()
 
-	conn := database.NewNatsSender(nc) // подключаем Nats
-	go conn.Send()
+	conn := database.NewNatsSender(nc)                          // подключаем Nats
+	go conn.Send()                                              // включаем Send в горутине
 	hezzlDB := database.NewHezzlDB(db)                          // подключаем бд
 	redisDB := database.NewRedisDB(client)                      // подключаем Redis
 	hezzlLogic := logic.NewHezzlLogic(hezzlDB, redisDB)         // подключаем бд и Redis к логике...
