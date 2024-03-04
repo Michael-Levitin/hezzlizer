@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/Michael-Levitin/hezzlizer/config"
 	"github.com/Michael-Levitin/hezzlizer/internal/database"
 	"github.com/Michael-Levitin/hezzlizer/internal/delivery"
 	"github.com/Michael-Levitin/hezzlizer/internal/logic"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"net/http"
 )
 
 func main() {
@@ -38,6 +40,23 @@ func main() {
 	log.Info().Msg("connected to Redis")
 	defer client.Close()
 
+	//conn, err := pgx.Connect(context.Background(), dbAdrr)
+	//if err != nil {
+	//	log.Fatal().Err(err).Msg("error connecting to database, for prepare ")
+	//}
+	//log.Info().Msg("connected to database, for prepared statement")
+
+	// Подключение к NATS
+	//nc, err := nats.Connect("nats://nats-server:4222")
+	nc, err := nats.Connect("localhost:4222")
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting server to Nats")
+	}
+	log.Info().Msg("server connected to Nats")
+	defer nc.Close()
+
+	conn := database.NewNatsSender(nc) // подключаем Nats
+	go conn.Send()
 	hezzlDB := database.NewHezzlDB(db)                          // подключаем бд
 	redisDB := database.NewRedisDB(client)                      // подключаем Redis
 	hezzlLogic := logic.NewHezzlLogic(hezzlDB, redisDB)         // подключаем бд и Redis к логике...

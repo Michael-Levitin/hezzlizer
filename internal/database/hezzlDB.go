@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/Michael-Levitin/hezzlizer/internal/dto"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -87,6 +88,7 @@ func (h HezzlDB) GoodCreateDB(ctx context.Context, item *dto.Item) (*dto.Item, e
 		return &dto.Item{}, dto.ErrQueryExecute
 	}
 
+	go addItemToBatch(item)
 	return item, nil
 }
 
@@ -126,6 +128,7 @@ func (h HezzlDB) GoodUpdateDB(ctx context.Context, item *dto.Item) (*dto.Item, e
 		return &dto.Item{}, dto.ErrQueryExecute
 	}
 
+	go addItemToBatch(item)
 	return item, nil
 }
 
@@ -224,4 +227,15 @@ func (h HezzlDB) GoodReprioritizeDB(ctx context.Context, item *dto.Item) (*dto.R
 	}
 
 	return &dto.ReprResponse{Priorities: priorities}, nil
+}
+
+func addItemToBatch(item *dto.Item) {
+
+	batch = append(batch, item)
+}
+
+func addItemSToBatch(itemS []*dto.Item) {
+	for _, item := range itemS {
+		batch = append(batch, item)
+	}
 }
