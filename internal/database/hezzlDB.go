@@ -242,6 +242,7 @@ func (h HezzlDB) GoodReprioritizeDB(ctx context.Context, item *dto.Item) (*dto.R
 }
 
 func addItemToBatch(item *dto.Item) {
-
-	batch = append(batch, item)
+	batch.lock.Lock()
+	batch.b = append(batch.b, item)
+	batch.lock.Unlock()
 }

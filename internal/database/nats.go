@@ -3,6 +3,7 @@ package database
 import (
 	"bytes"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Michael-Levitin/hezzlizer/internal/dto"
@@ -27,21 +28,28 @@ VALUES (Id, ProjectID, Name, Description, ProjectID, Removed, EventTime)
 	batchCap  = 1000 // batch capacity
 )
 
-var batch = make([]*dto.Item, 0, batchCap)
+type batchS struct {
+	b    []*dto.Item
+	lock sync.Mutex
+}
+
+var batch = batchS{
+	b:    make([]*dto.Item, 0, batchCap),
+	lock: sync.Mutex{},
+}
 
 func (n Nuts) Send() {
 	var jsonStr bytes.Buffer
 	ticker := time.NewTicker(time.Second * tickerSec)
 
 	for range ticker.C {
-		n.nc.Publish("goods", []byte("Hello"))
-
-		if len(batch) == 0 {
+		if len(batch.b) == 0 {
 			continue
 		}
 
 		jsonStr.WriteString(_queryStart)
-		for i, item := range batch {
+		batch.lock.Lock()
+		for i, item := range batch.b {
 			jsonStr.WriteString("(" + strconv.Itoa(item.Id) + ", ")
 			jsonStr.WriteString(strconv.Itoa(item.ProjectID) + ", ")
 			jsonStr.WriteString(item.Name + ", ")
@@ -49,7 +57,7 @@ func (n Nuts) Send() {
 			jsonStr.WriteString(strconv.Itoa(item.Priority) + ", ")
 			jsonStr.WriteString(strconv.FormatBool(item.Removed) + ", ")
 			jsonStr.WriteString(item.CreatedAt.String() + ")")
-			if i < len(batch)-1 {
+			if i < len(batch.b)-1 {
 				jsonStr.WriteString(",\n")
 			}
 		}
@@ -60,10 +68,9 @@ func (n Nuts) Send() {
 		} else {
 			log.Info().Msg("nats: batch sent" + jsonStr.String())
 			log.Info().Msg("nats: batch sent")
-			batch = make([]*dto.Item, 0, batchCap)
+			batch.b = make([]*dto.Item, 0, batchCap)
 		}
-
+		batch.lock.Unlock()
 		jsonStr.Reset()
 	}
-	log.Info().Msg("nats go finished")
 }
