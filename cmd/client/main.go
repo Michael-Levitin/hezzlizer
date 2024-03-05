@@ -1,20 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"runtime"
 
+	_ "github.com/mailru/go-clickhouse"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
-	//// Подключение к ClickHouse
-	//connect, err := clickhouse.Open("tcp://clickhouse-server:9000?debug=false")
-	//if err != nil {
-	//	log.Fatal().Err(err).Msg("error connecting to ClickHouse")
-	//}
-	//defer connect.Close()
+	// Подключение к ClickHouse
+	connect, err := sql.Open("clickhouse", "http://127.0.0.1:8123/default")
+	if err != nil {
+		log.Fatal().Err(err).Msg("error connecting client to clickhouse")
+	}
+	if err = connect.Ping(); err != nil {
+		log.Fatal().Err(err).Msg("error sending ping to clickhouse")
+	}
 
 	// Подключение к NATS
 	nc, err := nats.Connect("localhost:4222")
@@ -27,12 +31,15 @@ func main() {
 	sub, err := nc.Subscribe("goods", func(msg *nats.Msg) {
 		// Обработка полученного сообщения
 		log.Info().Msg(fmt.Sprintf("Получено сообщение: \n%s", msg.Data))
-		//stmt, err := connect.Prepare(string(msg.Data))
-
+		_, err = connect.Exec(string(msg.Data))
+		if err != nil {
+			log.Warn().Err(err).Msg("failed executing query")
+		}
 	})
 
 	// Run forever
 	runtime.Goexit()
 	defer nc.Close()
 	defer sub.Unsubscribe()
+	defer connect.Close()
 }

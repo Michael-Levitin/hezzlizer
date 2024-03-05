@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS goods
     Priority  UInt32,
     Removed   Boolean,
     EventTime DateTime
-);
+) engine = Memory;
