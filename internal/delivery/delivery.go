@@ -3,13 +3,15 @@ package delivery
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/Michael-Levitin/hezzlizer/internal/database"
 	"github.com/Michael-Levitin/hezzlizer/internal/dto"
 	"github.com/Michael-Levitin/hezzlizer/internal/logic"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strconv"
 )
 
 type HezzlServer struct {
@@ -48,6 +50,10 @@ func (h HezzlServer) GoodUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	item, err = h.logic.GoodUpdate(context.Background(), item)
+	if errors.Is(err, dto.ErrNotFound) {
+		setHeader404(w, err)
+		return
+	}
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -65,6 +71,10 @@ func (h HezzlServer) GoodRemove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemS, err := h.logic.GoodRemove(context.Background(), item)
+	if errors.Is(err, dto.ErrNotFound) {
+		setHeader404(w, err)
+		return
+	}
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -178,4 +188,12 @@ func getParam(r *http.Request) (*dto.Item, error) {
 	item.ProjectID = projectIdNum
 
 	return &item, nil
+}
+
+func setHeader404(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Header().Add("code", "3")
+	w.Header().Add("message", err.Error())
+	w.Header().Add("details", "{}")
+	fmt.Fprint(w, err)
 }

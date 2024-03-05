@@ -113,7 +113,7 @@ func (h HezzlDB) GoodUpdateDB(ctx context.Context, item *dto.Item) (*dto.Item, e
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		tx.Commit(ctx)
-		return &dto.Item{}, fmt.Errorf("query found nothing to update")
+		return &dto.Item{}, dto.ErrNotFound
 	} else if err != nil {
 		log.Debug().Err(err).Msg(fmt.Sprintf("GoodUpdateDB could not update %+v", item))
 		err = tx.Rollback(ctx)
@@ -153,7 +153,7 @@ func (h HezzlDB) GoodRemoveDB(ctx context.Context, item *dto.Item) (*dto.ItemSho
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		tx.Commit(ctx)
-		return &dto.ItemShort{}, fmt.Errorf("query found nothing to update")
+		return &dto.ItemShort{}, dto.ErrNotFound
 	} else if err != nil {
 		log.Debug().Err(err).Msg(fmt.Sprintf("GoodRemoveDB could not update %+v", item))
 		err = tx.Rollback(ctx)

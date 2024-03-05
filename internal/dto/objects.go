@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrQueryExecute = fmt.Errorf("could not execute query")
+	ErrNotFound     = fmt.Errorf("errors.good.notFound")
 )
 
 type Meta struct {
