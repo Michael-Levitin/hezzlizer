@@ -8,11 +8,12 @@ CLICKHOUSE_HOST = localhost
 CLICKHOUSE_DATABASE = your_database
 
 .PHONY: migrate_clickhouse
-migrate_clickhouse:$(CLICKHOUSE_CLIENT) --host $(CLICKHOUSE_HOST) --database $(CLICKHOUSE_DATABASE) < ./migrations/clickhouse.sql
+migrate_clickhouse:
+	$(CLICKHOUSE_CLIENT) --host $(CLICKHOUSE_HOST) --database $(CLICKHOUSE_DATABASE) < ./migrations/clickhouse.sql
 
 serverStart:
 	go run ../hezzlizer/cmd/server/main.go
 
 clientStart:
-	go run ../hezzlizer/cmd/client/main.go
+	go run ../hezzlizer/cmd/clientCH/main.go
 

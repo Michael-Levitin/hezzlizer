@@ -30,7 +30,7 @@ func main() {
 	//Подписка на NATS тему для получения логов
 	sub, err := nc.Subscribe("goods", func(msg *nats.Msg) {
 		// Обработка полученного сообщения
-		log.Info().Msg(fmt.Sprintf("Получено сообщение: \n%s", msg.Data))
+		log.Trace().Msg(fmt.Sprintf("Получено сообщение: %s", string(msg.Data)))
 		_, err = connect.Exec(string(msg.Data))
 		if err != nil {
 			log.Warn().Err(err).Msg("failed executing query")

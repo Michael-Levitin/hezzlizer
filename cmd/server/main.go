@@ -40,12 +40,6 @@ func main() {
 	log.Info().Msg("connected to Redis")
 	defer client.Close()
 
-	//conn, err := pgx.Connect(context.Background(), dbAdrr)
-	//if err != nil {
-	//	log.Fatal().Err(err).Msg("error connecting to database, for prepare ")
-	//}
-	//log.Info().Msg("connected to database, for prepared statement")
-
 	// Подключение к NATS
 	//nc, err := nats.Connect("nats://nats-server:4222")
 	nc, err := nats.Connect("localhost:4222")
