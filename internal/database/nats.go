@@ -21,9 +21,8 @@ func NewNatsSender(nc *nats.Conn) *Nuts {
 
 const (
 	_queryStart = `
-INSERT INTO goods
-VALUES (Id, ProjectID, Name, Description, ProjectID, Removed, EventTime)
-`
+INSERT INTO default.goods (Id, ProjectID, Name, Description, Priority, Removed, EventTime)
+VALUES `
 	tickerSec = 10   // ticker in seconds
 	batchCap  = 1000 // batch capacity
 )
@@ -52,11 +51,12 @@ func (n Nuts) Send() {
 		for i, item := range batch.b {
 			jsonStr.WriteString("(" + strconv.Itoa(item.Id) + ", ")
 			jsonStr.WriteString(strconv.Itoa(item.ProjectID) + ", ")
-			jsonStr.WriteString(item.Name + ", ")
-			jsonStr.WriteString(item.Description + ", ")
+			jsonStr.WriteString("'" + item.Name + "', ")
+			jsonStr.WriteString("'" + item.Description + "', ")
 			jsonStr.WriteString(strconv.Itoa(item.Priority) + ", ")
 			jsonStr.WriteString(strconv.FormatBool(item.Removed) + ", ")
-			jsonStr.WriteString(item.CreatedAt.String() + ")")
+			jsonStr.WriteString("'" + item.CreatedAt.Format("2006-01-02 15:04:05") + "')")
+
 			if i < len(batch.b)-1 {
 				jsonStr.WriteString(",\n")
 			}

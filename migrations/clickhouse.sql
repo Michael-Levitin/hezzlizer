@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS goods
     Description Nullable(String),
     Priority  UInt32,
     Removed   Boolean,
-    EventTime DateTime
+    EventTime timestamp
 ) engine = Memory;

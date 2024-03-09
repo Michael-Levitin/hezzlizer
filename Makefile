@@ -5,7 +5,7 @@ migrate:
 
 CLICKHOUSE_CLIENT = clickhouse-client
 CLICKHOUSE_HOST = localhost
-CLICKHOUSE_DATABASE = your_database
+CLICKHOUSE_DATABASE = default
 
 .PHONY: migrate_clickhouse
 migrate_clickhouse:
