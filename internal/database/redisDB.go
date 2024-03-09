@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/Michael-Levitin/hezzlizer/internal/dto"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
-	"strconv"
-	"time"
 )
 
 const redisTTL = 60 // seconds

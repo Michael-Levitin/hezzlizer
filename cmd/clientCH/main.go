@@ -19,6 +19,7 @@ func main() {
 	if err = connect.Ping(); err != nil {
 		log.Fatal().Err(err).Msg("error sending ping to clickhouse")
 	}
+	log.Info().Msg("client connected to Clickhouse")
 
 	// Подключение к NATS
 	nc, err := nats.Connect("localhost:4222")
