@@ -7,10 +7,13 @@ import (
 
 	_ "github.com/mailru/go-clickhouse"
 	"github.com/nats-io/nats.go"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	zerolog.SetGlobalLevel(0) // -1 = Trace
+
 	// Подключение к ClickHouse
 	connect, err := sql.Open("clickhouse", "http://127.0.0.1:8123/default")
 	if err != nil {
@@ -31,10 +34,12 @@ func main() {
 	//Подписка на NATS тему для получения логов
 	sub, err := nc.Subscribe("goods", func(msg *nats.Msg) {
 		// Обработка полученного сообщения
-		log.Trace().Msg(fmt.Sprintf("Получено сообщение: %s", string(msg.Data)))
-		_, err = connect.Exec(string(msg.Data))
+		log.Trace().Msg(fmt.Sprintf("recieved query: %s", string(msg.Data)))
+		_, err := connect.Exec(string(msg.Data))
 		if err != nil {
 			log.Warn().Err(err).Msg("failed executing query")
+		} else {
+			log.Info().Msg("successfully executed query")
 		}
 	})
 
