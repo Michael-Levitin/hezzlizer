@@ -20,20 +20,23 @@ type Body struct {
 	Priority    int    `json:"priority,omitempty"`
 }
 
+// const sleep = 10 // milisec
+var maxId = 20
+
 func main() {
 	zerolog.SetGlobalLevel(-1) // -1 = Trace
-	//for i := 0; i < 10; i++ {
-	//	goodCreate()
-	//}
-	//for i := 0; i < 10; i++ {
-	//	goodUpdate()
-	//}
-	//for i := 0; i < 10; i++ {
-	//	goodRemove()
-	//}
-	//for i := 0; i < 10; i++ {
-	//	getList()
-	//}
+	for i := 0; i < 10; i++ {
+		goodCreate()
+	}
+	for i := 0; i < 10; i++ {
+		goodUpdate()
+	}
+	for i := 0; i < 10; i++ {
+		goodRemove()
+	}
+	for i := 0; i < 10; i++ {
+		getList()
+	}
 	for i := 0; i < 10; i++ {
 		goodReprioritize()
 	}
@@ -140,28 +143,29 @@ func getList() {
 		log.Warn().Err(err).Msg("error unmarshalling response")
 		return
 	}
+	maxId = list.Meta.Total
 	log.Trace().Msg(fmt.Sprintf("%+v, returned: %d items", list.Meta, len(list.Goods)))
 }
 
 func randUrlList() string {
-	return fmt.Sprintf("http://127.0.0.1:8080/goods/list?limit=%d&offset=%d", randInt(20), randInt(20))
+	return fmt.Sprintf("http://127.0.0.1:8080/goods/list?limit=%d&offset=%d", randInt(20), randInt(maxId))
 }
 
 func randUrlUpdate() string {
-	return fmt.Sprintf("http://127.0.0.1:8080/good/update?id=%d&projectId=1", randInt(20))
+	return fmt.Sprintf("http://127.0.0.1:8080/good/update?id=%d&projectId=1", randInt(maxId))
 }
 
 func randUrlRemove() string {
-	return fmt.Sprintf("http://127.0.0.1:8080/good/remove?id=%d&projectId=1", randInt(20))
+	return fmt.Sprintf("http://127.0.0.1:8080/good/remove?id=%d&projectId=1", randInt(maxId))
 }
 
 func randUrlRepr() string {
-	return fmt.Sprintf("http://127.0.0.1:8080/good/reprioritize?id=%d&projectId=1", randInt(20))
+	return fmt.Sprintf("http://127.0.0.1:8080/good/reprioritize?id=%d&projectId=1", randInt(maxId))
 }
 
 func randInt(n int) int {
 	rand.Seed(time.Now().UnixNano() + rand.Int63())
-	return rand.Intn(n)
+	return rand.Intn(n) + rand.Intn(2) + rand.Intn(2) + rand.Intn(2) // lower occurance of 0 ???
 }
 
 func randName() string {

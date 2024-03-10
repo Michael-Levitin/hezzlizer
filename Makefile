@@ -14,6 +14,9 @@ migrate_clickhouse:
 serverStart:
 	go run ../hezzlizer/cmd/server/main.go
 
-clientStart:
+clientCHStart:
 	go run ../hezzlizer/cmd/clientCH/main.go
+
+clientHttpStart:
+	go run ../hezzlizer/cmd/clientHttp/main.go
 
