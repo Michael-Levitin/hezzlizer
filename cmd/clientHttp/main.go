@@ -21,15 +21,19 @@ type Body struct {
 
 func main() {
 	zerolog.SetGlobalLevel(-1) // -1 = Trace
+	//for i := 0; i < 10; i++ {
+	//	goodCreate()
+	//}
+	//for i := 0; i < 10; i++ {
+	//	goodUpdate()
+	//}
 	for i := 0; i < 10; i++ {
-		getList()
+		goodRemove()
 	}
-	for i := 0; i < 10; i++ {
-		goodCreate()
-	}
-	for i := 0; i < 10; i++ {
-		goodUpdate()
-	}
+	//for i := 0; i < 10; i++ {
+	//	getList()
+	//}
+
 }
 
 func goodUpdate() {
@@ -45,6 +49,14 @@ func goodCreate() {
 	resp, err := http.Post("http://127.0.0.1:8080/good/create?projectId=1",
 		"application/json",
 		bytes.NewBuffer(randBody(randName())))
+	respHandle(err, notify, resp)
+}
+
+func goodRemove() {
+	notify := "remove"
+	resp, err := http.Post(randUrlRemove(),
+		"application/json",
+		bytes.NewBuffer(randBody()))
 	respHandle(err, notify, resp)
 }
 
@@ -104,6 +116,10 @@ func randUrlList() string {
 
 func randUrlUpdate() string {
 	return fmt.Sprintf("http://127.0.0.1:8080/good/update?id=%d&projectId=1", randInt(20))
+}
+
+func randUrlRemove() string {
+	return fmt.Sprintf("http://127.0.0.1:8080/good/remove?id=%d&projectId=1", randInt(20))
 }
 
 func randInt(n int) int {
