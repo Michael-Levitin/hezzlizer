@@ -17,6 +17,7 @@ import (
 type Body struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
+	Priority    int    `json:"priority,omitempty"`
 }
 
 func main() {
@@ -27,13 +28,15 @@ func main() {
 	//for i := 0; i < 10; i++ {
 	//	goodUpdate()
 	//}
-	for i := 0; i < 10; i++ {
-		goodRemove()
-	}
+	//for i := 0; i < 10; i++ {
+	//	goodRemove()
+	//}
 	//for i := 0; i < 10; i++ {
 	//	getList()
 	//}
-
+	for i := 0; i < 10; i++ {
+		goodReprioritize()
+	}
 }
 
 func goodUpdate() {
@@ -60,6 +63,36 @@ func goodRemove() {
 	respHandle(err, notify, resp)
 }
 
+func goodReprioritize() {
+	notify := "reprioritize"
+
+	resp, err := http.Post(randUrlRepr(),
+		"application/json",
+		bytes.NewBuffer(randBody("", "", "")))
+	if err != nil {
+		log.Warn().Err(err).Msg(notify + ": error sending request")
+		return
+	}
+	if resp.StatusCode != 200 {
+		log.Warn().Msg(notify + fmt.Sprintf(": page returned status: %s", resp.Status))
+		return
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Warn().Err(err).Msg(notify + ": error reading response")
+		return
+	}
+
+	var list dto.ReprResponse
+	err = json.Unmarshal(b, &list)
+	if err != nil {
+		log.Warn().Err(err).Msg(notify + ": error unmarshalling response " + string(b))
+		return
+	}
+	log.Trace().Msg(fmt.Sprintf(notify+"d: %d items", len(list.Priorities)))
+}
+
 func respHandle(err error, notify string, resp *http.Response) {
 	if err != nil {
 		log.Warn().Err(err).Msg(notify + ": error sending request")
@@ -82,7 +115,7 @@ func respHandle(err error, notify string, resp *http.Response) {
 		log.Warn().Err(err).Msg(notify + ": error unmarshalling response " + string(b))
 		return
 	}
-	log.Trace().Msg(fmt.Sprintf(notify+": %+v", item))
+	log.Trace().Msg(fmt.Sprintf(notify+"d: %+v", item))
 }
 
 func getList() {
@@ -122,6 +155,10 @@ func randUrlRemove() string {
 	return fmt.Sprintf("http://127.0.0.1:8080/good/remove?id=%d&projectId=1", randInt(20))
 }
 
+func randUrlRepr() string {
+	return fmt.Sprintf("http://127.0.0.1:8080/good/reprioritize?id=%d&projectId=1", randInt(20))
+}
+
 func randInt(n int) int {
 	rand.Seed(time.Now().UnixNano() + rand.Int63())
 	return rand.Intn(n)
@@ -145,6 +182,8 @@ func randBody(arg ...string) []byte {
 			b.Name = field
 		case i == 1:
 			b.Description = field
+		case i == 2:
+			b.Priority = randInt(20)
 		}
 	}
 
